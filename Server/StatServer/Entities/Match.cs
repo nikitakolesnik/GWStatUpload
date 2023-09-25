@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace StatServer.Entities
 {
 	[Table("Matches")]
-	internal class Match
+	public class Match
 	{
 		[Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -16,6 +16,7 @@ namespace StatServer.Entities
 		public Match()
 		{
 			Submitted = DateTime.Now;
+			Result = Team.Unknown;
 		}
 
 		public Match(Team result) : this()

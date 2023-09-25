@@ -3,7 +3,7 @@ using StatServer.Entities;
 
 namespace StatServer.Contexts
 {
-	internal class AppDbContext : DbContext
+	public class AppDbContext : DbContext
 	{
 		public DbSet<Match> Matches { get; set; }
 		public DbSet<MatchEntry> MatchEntries { get; set; }

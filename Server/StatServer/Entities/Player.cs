@@ -4,11 +4,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace StatServer.Entities
 {
 	[Table("Players")]
-	internal class Player
+	public class Player
 	{
 		[Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
-		public string Name { get; set; }
-	}
+		public string Name { get; set; } = string.Empty;
+
+        public Player(string name)
+        {
+			Name = name;
+        }
+    }
 }

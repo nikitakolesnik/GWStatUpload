@@ -1,5 +1,6 @@
 
 using StatServer.Contexts;
+using StatServer.Services;
 
 namespace StatServer
 {
@@ -11,9 +12,9 @@ namespace StatServer
 
 			builder.Logging.AddConsole();
 
-			builder.Services
-				.AddDbContext<AppDbContext>()
-				.AddControllers();
+			builder.Services.AddDbContext<AppDbContext>();
+			builder.Services.AddControllers();
+			builder.Services.AddScoped<MatchRepository>();
 
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
