@@ -62,7 +62,7 @@ namespace StatServer.Services
 
 
 			// add the match entry rows
-
+			
 			foreach (MatchPlayer player in matchEntryDTO.Players)
 			{
 				int playerId = playerNameToId[player.Name];
