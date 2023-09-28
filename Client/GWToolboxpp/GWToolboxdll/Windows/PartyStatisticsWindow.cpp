@@ -447,6 +447,11 @@ namespace {
 
     void SendPostReqWithSkillStats()
     {
+        //include if you are red or blue team, and maybe check in the thing that calls this that the match actually completed
+        //GW::Map::GetMapInfo    AreaInfo looks promising
+        //~~~
+        
+        
         // build json to export
         
         using json = nlohmann::json;
@@ -457,10 +462,14 @@ namespace {
             std::string player_name = pm->name.string();
             json playerObject;
             playerObject["name"] = player_name;
+            
             json playerSkillsArray = json::array();
-
             for (Skill skill : pm->skills) {
-                json skillObject = {{"skill_id", static_cast<uint32_t>(skill.id)}, {"count", skill.count}, {"name", skill.name->string()}};
+                json skillObject = {
+                    {"skill_id", static_cast<uint32_t>(skill.id)}, 
+                    {"count", skill.count}, 
+                    {"name", skill.name->string()}
+                };
                 playerSkillsArray.push_back(skillObject);
             }
             playerObject["skills"] = playerSkillsArray;
