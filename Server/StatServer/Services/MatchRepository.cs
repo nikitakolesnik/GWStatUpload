@@ -1,4 +1,5 @@
-﻿using StatServer.Contexts;
+﻿using Microsoft.EntityFrameworkCore;
+using StatServer.Contexts;
 using StatServer.Entities;
 using StatServer.Enums;
 using StatServer.Models;
@@ -31,29 +32,28 @@ namespace StatServer.Services
 			Match match = new();
 			await _ctx.Matches.AddAsync(match);
 			await _ctx.SaveChangesAsync(); // get the generated ID for this match
-										   // TODO: reconciling multiple submissions of the same match
+										 // TODO: reconciling multiple submissions of the same match
 
-			_logger.LogInformation("created new match with ID " + match.Id);
+			_logger?.LogInformation("created new match with ID " + match.Id);
 
 
 			// insert missing players & create a name:id map
 
-			List<string> submittedPlayerNames = matchEntryDTO.Players
-				.Select(x => x.Name)
-				.ToList();
-			List<Player> playersInTable = _ctx.Players
-				.Where(x => submittedPlayerNames.Contains(x.Name))
-				.ToList();
-			List<Player> playersNotInTable = submittedPlayerNames
+			var submittedPlayerNames = matchEntryDTO.Players
+				.Select(x => x.Name);
+			var playersInTable = _ctx.Players
+				.Where(x => submittedPlayerNames.Contains(x.Name));
+			var playersNotInTable = submittedPlayerNames
 				.Except(playersInTable.Select(x => x.Name))
-				.Select(x => new Player(x))
-				.ToList();
-			if (playersNotInTable.Count > 0)
+				.Select(x => new Player(x));
+
+			if (playersNotInTable.Count() > 0)
 			{
 				await _ctx.Players.AddRangeAsync(playersNotInTable);
 				await _ctx.SaveChangesAsync(); // get generated IDs for new players
 			}
-			_logger.LogInformation($"added {playersNotInTable.Count} players to db");
+			_logger?.LogInformation($"added {playersNotInTable.Count()} players to db");
+			
 			Dictionary<string, int> playerNameToId = new();
 			foreach (Player player in playersInTable.Concat(playersNotInTable))
 			{
@@ -75,8 +75,18 @@ namespace StatServer.Services
 				}
 			}
 			int rowsAdded = _ctx.SaveChanges();
-			_logger.LogInformation($"added {rowsAdded} match entry rows to db");
+			_logger?.LogInformation($"added {rowsAdded} match entry rows to db");
 			return rowsAdded > 0;
+		}
+
+		public async Task<IEnumerable<MatchEntryDTO>> GetMatchEntriesForMatches(int offset, int pageSize)
+		{
+			var matches = _ctx.Matches
+				.Include(x => x.MatchEntries)
+				.Skip(offset)
+				.Take(pageSize);
+
+			return matches as IEnumerable<MatchEntryDTO>;
 		}
 	}
 }

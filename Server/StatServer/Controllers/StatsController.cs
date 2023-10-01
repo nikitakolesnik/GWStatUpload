@@ -23,24 +23,31 @@ namespace StatServer.Controllers
 
 		[Route("marco")]
 		[HttpGet]
-		public IActionResult Get()
+		public IActionResult HealthCheck()
 		{
-			_logger.LogInformation("got response");
+			_logger?.LogInformation("got response");
 			return Ok("polo");
 		}
 
-		[Route("posttest")]
+		[Route("submit_match")]
 		//[RequestSizeLimit(2147483648)] // e.g. 2 GB request limit
 		[HttpPost]
-		public async Task<IActionResult> Post()//[FromBody] MatchEntryDTO matchEntry) // getting it this way gives "Failed to read the request form. Form key length limit 2048 exceeded." i will figure it out later maybe
+		public async Task<IActionResult> SubmitMatch()//[FromBody] MatchEntryDTO matchEntry) // getting it this way gives "Failed to read the request form. Form key length limit 2048 exceeded." i will figure it out later maybe
 		{
 			string content = await new StreamReader(Request.Body).ReadToEndAsync();
 			MatchEntryDTO matchEntry = JsonConvert.DeserializeObject<MatchEntryDTO>(content);
-			_logger.LogInformation($"got json body with {matchEntry?.Players.Count ?? -1} players");
+			_logger?.LogInformation($"got json body with {matchEntry?.Players.Count ?? -1} players");
 
 			await _repo.AddMatchEntry(matchEntry);
 			
 			return Ok("posted and toasted");
+		}
+
+		[Route("get_match_page")]
+		[HttpGet]
+		public async Task<IEnumerable<MatchEntryDTO>> GetMatchPage(int start = 0, int pageSize = 10)
+		{
+			return await _repo.GetMatchEntriesForMatches(start, pageSize);
 		}
 	}
 }

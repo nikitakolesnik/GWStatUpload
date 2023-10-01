@@ -13,7 +13,10 @@ namespace StatServer.Entities
 		public DateTime Submitted { get; set; }
 		public Team Result { get; set; }
 
-		public Match()
+		// nav
+ public List<MatchEntry>? MatchEntries { get; set; }
+
+ public Match()
 		{
 			Submitted = DateTime.Now;
 			Result = Team.Unknown;

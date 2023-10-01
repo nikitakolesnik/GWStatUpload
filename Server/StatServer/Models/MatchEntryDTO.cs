@@ -4,7 +4,8 @@ namespace StatServer.Models
 {
 	public class MatchEntryDTO
 	{
-		public List<MatchPlayer> Players { get; set; } = new();
+		public DateTime Submitted { get; set; } = DateTime.Now;
+ public List<MatchPlayer> Players { get; set; } = new();
 	}
 
 	public class MatchPlayer

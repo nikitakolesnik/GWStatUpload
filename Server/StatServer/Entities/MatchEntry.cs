@@ -9,10 +9,10 @@ namespace StatServer.Entities
 	{
 		[Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+ public int Id { get; set; }
 		public int MatchId { get; set; }
 		public Team Team { get; set; }
-        public int PlayerId { get; set; }
+ public int PlayerId { get; set; }
 		public int SkillId { get; set; }
 		public int Count { get; set; }
 
@@ -20,13 +20,13 @@ namespace StatServer.Entities
 		public Match? Match { get; set; }
 		public Player? Player { get; set; }
 
-        public MatchEntry(int matchId, Team team, int playerId, int skillId, int count)
-        {
+ public MatchEntry(int matchId, Team team, int playerId, int skillId, int count)
+ {
 			MatchId = matchId;
 			Team = team;
 			PlayerId = playerId;
 			SkillId = skillId;
 			Count = count;
-        }
-    }
+ }
+ }
 }

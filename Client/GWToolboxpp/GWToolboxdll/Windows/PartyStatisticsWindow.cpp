@@ -479,7 +479,7 @@ namespace {
         std::string payload = jsonObject.dump(0);
 
         // build http request
-        const std::string url = "https://localhost:7000/stats/posttest";
+        const std::string url = "https://localhost:7000/stats/submit_match";
         RestClient r;
         char user_agent_str[32];
         ASSERT(snprintf(user_agent_str, sizeof(user_agent_str), "GWToolboxpp/%s", GWTOOLBOXDLL_VERSION) != -1);
