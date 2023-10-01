@@ -467,8 +467,8 @@ namespace {
             for (Skill skill : pm->skills) {
                 json skillObject = {
                     {"skill_id", static_cast<uint32_t>(skill.id)}, 
-                    {"count", skill.count}, 
-                    {"name", skill.name->string()}
+                    {"count", skill.count}
+                    //,{"name", skill.name->string()}
                 };
                 playerSkillsArray.push_back(skillObject);
             }
