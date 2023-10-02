@@ -45,9 +45,9 @@ namespace StatServer.Controllers
 
 		[Route("get_match_page")]
 		[HttpGet]
-		public async Task<IEnumerable<MatchEntryDTO>> GetMatchPage(int start = 0, int pageSize = 10)
+		public async Task<IEnumerable<MatchEntryDTO>> GetMatchPage(int offset = 0, int pageSize = 10)
 		{
-			return await _repo.GetMatchEntriesForMatches(start, pageSize);
+			return await _repo.GetMatchEntriesForMatches(offset, pageSize);
 		}
 	}
 }
