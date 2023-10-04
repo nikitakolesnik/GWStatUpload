@@ -4,25 +4,25 @@ namespace StatServer.Models
 {
 	public class MatchEntryDTO
 	{
-		public DateTime Submitted { get; set; } = DateTime.Now;
+		public DateTime Submitted { get; set; } = DateTime.UtcNow;
 		public HashSet<MatchPlayer> Players { get; set; } = new();
 
-        public MatchEntryDTO(DateTime submitted)
-        {
+		public MatchEntryDTO(DateTime submitted)
+		{
 			Submitted = submitted;
-        }
-    }
+		}
+	}
 
 	public class MatchPlayer
 	{
 		public string Name { get; set; } = string.Empty;
 		public HashSet<MatchPlayerSkill> Skills { get; set; } = new();
 
-        public MatchPlayer(string name)
-        {
+		public MatchPlayer(string name)
+		{
 			Name = name;
-        }
-    }
+		}
+	}
 
 	public class MatchPlayerSkill
 	{
@@ -32,10 +32,10 @@ namespace StatServer.Models
 		[JsonProperty("count")]
 		public int Count { get; set; }
 
-        public MatchPlayerSkill(int id, int count)
-        {
+		public MatchPlayerSkill(int id, int count)
+		{
 			Id = id;
 			Count = count;
-        }
-    }
+		}
+	}
 }

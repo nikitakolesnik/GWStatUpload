@@ -87,23 +87,27 @@ namespace StatServer.Services
 		public async Task<IEnumerable<MatchEntryDTO>> GetMatchEntriesForMatches(int offset, int pageSize)
 		{
 			const int PAGE_SIZE_LIMIT = 50;
-			pageSize = Math.Min(pageSize, PAGE_SIZE_LIMIT);
+			pageSize = Limit(pageSize, 0, PAGE_SIZE_LIMIT);
 
-			List<MatchEntryDTO> result = new();
-			var matches = _ctx.Matches
+			List<Match> matches = _ctx.Matches
+				.OrderByDescending(m => m.Id)
 				.Skip(offset)
 				.Take(pageSize)
-				.Include(x => x.MatchEntries);
-
-			var matchIds = matches.Select(m => m.Id).ToList();
+				.Include(x => x.MatchEntries)
+				.ToList();
 
 			// get all match entries for this page of matches in a single DB read
-			var matchEntries = _ctx.MatchEntries.Where(me => matchIds.Contains(me.Match.Id));
+			int[] matchIds = matches.Select(m => m.Id).ToArray();
+			List<MatchEntry> matchEntries = _ctx.MatchEntries
+				.Include(me => me.Player)
+				.Where(me => matchIds.Contains(me.MatchId))
+				.ToList();
 
+			List<MatchEntryDTO> result = new();
 			foreach (Match match in matches)
 			{
 				// subset of all match entries for this match only
-				var matchEntriesForMatch = matchEntries.Where(me => me.Match.Id == match.Id);
+				List<MatchEntry> matchEntriesForMatch = matchEntries.Where(me => me.MatchId == match.Id).ToList();
 				
 				// condense the match entry rows into a flat DTO
 				MatchEntryDTO matchExport = new(match.Submitted);
@@ -111,8 +115,11 @@ namespace StatServer.Services
 				{
 					string playerName = matchEntry.Player.Name;
 
-					matchExport.Players
-						.Add(new MatchPlayer(playerName));
+					if (!matchExport.Players.Any(x => x.Name == playerName)) // i think it's fine for a prototype, but this is pretty ugly...
+					{
+						matchExport.Players
+							.Add(new MatchPlayer(playerName));
+					}
 
 					matchExport.Players
 						.Single(x => x.Name == playerName)
@@ -123,6 +130,14 @@ namespace StatServer.Services
 			}
 
 			return result;
+		}
+
+		/// <summary> Keeps an int within a range. Taking 0 to 50: -1 becomes 0, 10 remains unchanged, and 500 becomes 50. </summary>
+		private static int Limit(int num, int min, int max) 
+		{
+			num = Math.Min(num, max);
+			num = Math.Max(num, min);
+			return num;
 		}
 	}
 }

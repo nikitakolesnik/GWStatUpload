@@ -18,7 +18,7 @@ namespace StatServer.Entities
 
 		public Match()
 		{
-			Submitted = DateTime.Now;
+			Submitted = DateTime.UtcNow;
 			Result = Team.Unknown;
 		}
 
