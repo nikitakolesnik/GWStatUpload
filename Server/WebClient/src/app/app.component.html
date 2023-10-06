@@ -1,24 +1,41 @@
-﻿<h1 id="tableLabel">Weather forecast</h1>
+<h1 id="tableLabel">ballsack</h1>
 
 <p>This component demonstrates fetching data from the server.</p>
 
-<p *ngIf="!forecasts"><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationangular">https://aka.ms/jspsintegrationangular</a> for more details.</em></p>
+<p *ngIf="!match_entries"><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationangular">https://aka.ms/jspsintegrationangular</a> for more details.</em></p>
 
-<table *ngIf="forecasts">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let forecast of forecasts">
-            <td>{{ forecast.date }}</td>
-            <td>{{ forecast.temperatureC }}</td>
-            <td>{{ forecast.temperatureF }}</td>
-            <td>{{ forecast.summary }}</td>
-        </tr>
-    </tbody>
-</table>
+<p>page size = {{PAGE_SIZE}}</p>
+<p>offset = {{offset}}</p>
+
+<p *ngIf="match_entries">match entries = {{match_entries.length}}</p>
+
+<div class="table" *ngIf="match_entries">
+  <div class="table-header table-row">
+    <div class="td"></div>
+    <div class="td">#</div>
+    <div class="td">Text 1</div>
+    <div class="td">Text 2</div>
+  </div>
+  <div class="table-row" *ngFor="let row of rows; let rowIndex = index">
+    <div [class.clickable]="isRowClickable(rowIndex)" (click)="expanded[row.id] = !expanded[row.id]">
+      <div class="td">
+        <span *ngIf="isRowClickable(rowIndex)">
+          <span *ngIf="expanded[row.id]">-</span>
+          <span *ngIf="!expanded[row.id]">+</span>
+        </span>
+      </div>
+      <div class="td">{{row.id}}</div>
+      <div class="td">{{row.text1}}</div>
+      <div class="td">{{row.text2}}</div>
+      <!-- <div *ngIf="expanded[row.id]"> -->
+      <div [@detailExpand]="expanded[row.id] ? 'expanded' : 'collapsed'">
+        <div class="child-row" *ngFor="let childrow of row.children">
+          <div class="td"></div>
+          <div class="td">{{childrow.id}}</div>
+          <div class="td">{{childrow.text1}}</div>
+          <div class="td">{{childrow.text2}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

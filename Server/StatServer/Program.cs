@@ -14,6 +14,16 @@ namespace StatServer
 			builder.Services.AddDbContext<AppDbContext>();
 			builder.Services.AddControllers();
 			builder.Services.AddScoped<MatchRepository>();
+			const string corsPolicyName = "policy";
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy(name: corsPolicyName,
+					policy =>
+					{
+						policy.WithOrigins("https://localhost:4200");
+							//.WithMethods("PUT", "DELETE", "GET");
+					});
+			});
 
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
@@ -28,7 +38,12 @@ namespace StatServer
 				app.UseSwaggerUI();
 			}
 
+
 			app.UseHttpsRedirection();
+
+			app.UseRouting(); //?
+
+			app.UseCors(corsPolicyName);
 
 			app.UseAuthorization();
 
