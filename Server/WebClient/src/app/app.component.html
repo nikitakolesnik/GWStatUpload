@@ -1,7 +1,5 @@
 <h1 id="tableLabel">ballsack</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
-
 <p *ngIf="!match_entries"><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationangular">https://aka.ms/jspsintegrationangular</a> for more details.</em></p>
 
 <p>page size = {{PAGE_SIZE}}</p>
@@ -9,33 +7,28 @@
 
 <p *ngIf="match_entries">match entries = {{match_entries.length}}</p>
 
-<div class="table" *ngIf="match_entries">
-  <div class="table-header table-row">
-    <div class="td"></div>
-    <div class="td">#</div>
-    <div class="td">Text 1</div>
-    <div class="td">Text 2</div>
-  </div>
-  <div class="table-row" *ngFor="let row of rows; let rowIndex = index">
-    <div [class.clickable]="isRowClickable(rowIndex)" (click)="expanded[row.id] = !expanded[row.id]">
-      <div class="td">
-        <span *ngIf="isRowClickable(rowIndex)">
-          <span *ngIf="expanded[row.id]">-</span>
-          <span *ngIf="!expanded[row.id]">+</span>
-        </span>
-      </div>
-      <div class="td">{{row.id}}</div>
-      <div class="td">{{row.text1}}</div>
-      <div class="td">{{row.text2}}</div>
-      <!-- <div *ngIf="expanded[row.id]"> -->
-      <div [@detailExpand]="expanded[row.id] ? 'expanded' : 'collapsed'">
-        <div class="child-row" *ngFor="let childrow of row.children">
-          <div class="td"></div>
-          <div class="td">{{childrow.id}}</div>
-          <div class="td">{{childrow.text1}}</div>
-          <div class="td">{{childrow.text2}}</div>
-        </div>
+<div class="container">
+  <ng-container *ngFor="let match_entry of match_entries">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">{{ calculate_time_diff_string(match_entry.submitted) }}</h5>
+        <!--<h6 class="card-subtitle mb-2 text-body-secondary">Card subtitle</h6>-->
+        <!--<p class="card-text">text</p>-->
+        <ng-container *ngFor="let player of match_entry.players">
+          <div class="container">
+            <div class="row">
+              <p>{{ player.name }}</p>
+              <ng-container *ngFor="let skill of player.skills">
+                <div class="col text-center">
+                  <p>{{ skill.id }}</p>
+                  <p>{{ skill.count }}</p>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </ng-container>
       </div>
     </div>
-  </div>
+  </ng-container>
 </div>
+

@@ -22,11 +22,24 @@ export class AppComponent {
     this.offset += this.PAGE_SIZE;
   }
 
+  calculate_time_diff_string(timestamp: string): string {
+    var now = new Date().getTime();
+    var then = new Date(timestamp).getTime();
+    var diff = now - then;
+
+    var days = Math.floor(diff / (60 * 60 * 24 * 1000));
+    var hours = Math.floor(diff / (60 * 60 * 1000)) - (days * 24);
+    var minutes = Math.floor(diff / (60 * 1000)) - ((days * 24 * 60) + (hours * 60));
+    var seconds = Math.floor(diff / 1000) - ((days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60));
+
+    return 'Submitted ' + days + ' days, ' + hours + ' hours, ' + minutes + ' minutes, ' + seconds + ' seconds ago.';
+  }
+
   get_next_page(http: HttpClient): void {
     //untested
     http.get<MatchEntry[]>(this.api + '/get_match_page?offset=' + this.offset + '&pageSize=' + this.PAGE_SIZE).subscribe(result => {
       console.log(result);
-      this.match_entries = this.match_entries.concat(this.match_entries, result);
+      this.match_entries = this.match_entries.concat(result);
     }, error => console.error(error));
     this.offset += this.PAGE_SIZE;
   }
