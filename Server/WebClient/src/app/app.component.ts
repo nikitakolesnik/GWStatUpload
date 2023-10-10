@@ -10,8 +10,8 @@ import { Component } from '@angular/core';
 export class AppComponent {
   readonly api: string = "https://localhost:7000/stats";
 
-  map1: Map<number, string> = new Map([
-    [0, 'https://wiki.guildwars.com/images/3/38/Unknown_Junundu_Ability.jpg'], // shouldn't ever be used
+  skills: Map<number, string> = new Map([
+    [0, 'https://wiki.guildwars.com/images/1/1b/Reflection.jpg'], // shouldn't ever be used
     [2, 'https://wiki.guildwars.com/images/e/e0/Resurrection_Signet.jpg'],
     [3, 'https://wiki.guildwars.com/images/8/8d/Signet_of_Capture.jpg'],
     [1403, 'https://wiki.guildwars.com/images/5/55/Agonizing_Chop.jpg'],

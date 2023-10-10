@@ -7,7 +7,7 @@
 
 <p *ngIf="match_entries">match entries = {{match_entries.length}}</p>
 
-<div class="container">
+<div class="container" *ngIf="match_entries">
   <ng-container *ngFor="let match_entry of match_entries">
     <div class="card">
       <div class="card-body">
@@ -20,15 +20,17 @@
               <p>{{ player.name }}</p>
               <ng-container *ngFor="let skill of player.skills">
                 <div class="col text-center">
-                  <p>{{ skill.id }}</p>
+                  <p><a href="https://wiki.guildwars.com/wiki/Game_link:Skill_{{skill.id}}"><img src="{{skills.get(skill.id)}}" width="64" height="64" /></a></p>
                   <p>{{ skill.count }}</p>
                 </div>
               </ng-container>
             </div>
+            <!--<hr />-->
           </div>
         </ng-container>
       </div>
     </div>
+    <br />
   </ng-container>
 </div>
 
