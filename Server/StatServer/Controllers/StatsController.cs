@@ -35,7 +35,7 @@ namespace StatServer.Controllers
 		public async Task<IActionResult> SubmitMatch()//[FromBody] MatchEntryDTO matchEntry) // getting it this way gives "Failed to read the request form. Form key length limit 2048 exceeded." i will figure it out later maybe
 		{
 			string content = await new StreamReader(Request.Body).ReadToEndAsync();
-			MatchEntryDTO matchEntry = JsonConvert.DeserializeObject<MatchEntryDTO>(content);
+			MatchEntryDTO_Incoming matchEntry = JsonConvert.DeserializeObject<MatchEntryDTO_Incoming>(content);
 			_logger?.LogInformation($"got json body with {matchEntry?.Players.Count ?? -1} players");
 
 			await _repo.AddMatchEntry(matchEntry);
@@ -45,7 +45,7 @@ namespace StatServer.Controllers
 
 		[Route("get_match_page")]
 		[HttpGet]
-		public async Task<IEnumerable<MatchEntryDTO>> GetMatchPage(int offset = 0, int pageSize = 10)
+		public async Task<IEnumerable<MatchEntryDTO_Incoming>> GetMatchPage(int offset = 0, int pageSize = 10)
 		{
 			return await _repo.GetMatchEntriesForMatches(offset, pageSize);
 		}

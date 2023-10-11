@@ -25,6 +25,9 @@
 #include <Str.h>
 #include <nlohmann/json.hpp>
 #include <cassert>
+#include <GWCA/Context/GameContext.h> //.
+#include <GWCA/Context/CharContext.h>
+#include <GWCA/Context/AgentContext.h>
 
 /*************************/
 /* Static Helper Methods */
@@ -232,7 +235,7 @@ namespace {
     /* Set Data Methods */
     /********************/
 
-    bool IsMapGvgMission()
+    bool IsInGvgMatch()
     {
         GW::Constants::MapID mapid = GW::Map::GetMapID();
         switch (mapid) {
@@ -447,11 +450,9 @@ namespace {
 
     void SendPostReqWithSkillStats()
     {
-        //include if you are red or blue team, and maybe check in the thing that calls this that the match actually completed
-        //GW::Map::GetMapInfo    AreaInfo looks promising
-        //~~~
-        
-        
+        uint32_t instance_id = GW::GetCharContext()->token1;
+        uint8_t team_id = GW::Agents::GetPlayer()->GetAsAgentLiving()->team_id; //blue=1, red=2
+
         // build json to export
         
         using json = nlohmann::json;
@@ -466,7 +467,7 @@ namespace {
             json playerSkillsArray = json::array();
             for (Skill skill : pm->skills) {
                 json skillObject = {
-                    {"skill_id", static_cast<uint32_t>(skill.id)}, 
+                    {"skill_id", static_cast<uint32_t>(skill.id)},
                     {"count", skill.count}
                     //,{"name", skill.name->string()}
                 };
@@ -491,12 +492,9 @@ namespace {
         r.SetVerifyHost(false);
         r.SetUrl(url.c_str());
         r.Execute();
-        std::string response;
-        if (!r.IsSuccessful()) {
-            StrSprintf(response, "Failed to download %s, curl status %d %s", url.c_str(), r.GetStatusCode(), r.GetStatusStr());
-        }
-        response = std::move(r.GetContent());
-        printf("%s\n", response.c_str());
+        r.IsSuccessful()
+            ? Log::InfoW(L"Sent match")
+            : Log::InfoW(L"Error sending match");
     }
 
     /********************/
@@ -510,13 +508,19 @@ namespace {
         }
         pending_party_members = true;
 
+        bool was_in_gvg_match = in_gvg_match;
+        in_gvg_match = IsInGvgMatch();
         in_explorable = GW::Map::GetInstanceType() == GW::Constants::InstanceType::Explorable;
         in_outpost = GW::Map::GetInstanceType() == GW::Constants::InstanceType::Outpost;
-        in_gvg_match = IsMapGvgMission();
         
-        if (//(in_outpost && !in_gvg_match) || // forget about it making sense, just make it send the request properly first                                             // TODO: check leaving a match before it's over
-            GW::Map::GetMapID() == GW::Constants::MapID::Serenity_Temple_outpost) { // REMOVE - testing with a specific map
-            // Just left a match.
+        // int to wchar_t?
+        auto yy = GW::GetGameContext()->instance();
+        Log::InfoW(L"Sent match");
+
+        // if the player just left a match
+        if (was_in_gvg_match && !in_gvg_match // TODO: check leaving a match before it's over?
+            || GW::Map::GetMapID() == GW::Constants::MapID::Serenity_Temple_outpost // temporarily testing with a specific map
+            ) { 
             SendPostReqWithSkillStats();
         }
     }

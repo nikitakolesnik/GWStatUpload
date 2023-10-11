@@ -27,7 +27,7 @@ namespace StatServer.Services
 			return _ctx.MatchEntries.Where(x => x.MatchId == matchId);
 		}
 
-		public async Task<bool> AddMatchEntry(MatchEntryDTO matchEntryDTO)
+		public async Task<bool> AddMatchEntry(MatchEntryDTO_Incoming matchEntryDTO)
 		{
 			// TODO: reconciling multiple submissions of the same match
 			// ...
@@ -84,7 +84,7 @@ namespace StatServer.Services
 			return rowsAdded > 0;
 		}
 
-		public async Task<IEnumerable<MatchEntryDTO>> GetMatchEntriesForMatches(int offset, int pageSize)
+		public async Task<IEnumerable<MatchEntryDTO_Outgoing>> GetMatchEntriesForMatches(int offset, int pageSize)
 		{
 			const int PAGE_SIZE_LIMIT = 50;
 			pageSize = Limit(pageSize, 0, PAGE_SIZE_LIMIT);
@@ -103,14 +103,14 @@ namespace StatServer.Services
 				.Where(me => matchIds.Contains(me.MatchId))
 				.ToList();
 
-			List<MatchEntryDTO> result = new();
+			List<MatchEntryDTO_Outgoing> result = new();
 			foreach (Match match in matches)
 			{
 				// subset of all match entries for this match only
 				List<MatchEntry> matchEntriesForMatch = matchEntries.Where(me => me.MatchId == match.Id).ToList();
-				
+
 				// condense the match entry rows into a flat DTO
-				MatchEntryDTO matchExport = new(match.Submitted);
+				MatchEntryDTO_Outgoing matchExport = new(match.Submitted);
 				foreach (MatchEntry matchEntry in matchEntriesForMatch)
 				{
 					string playerName = matchEntry.Player.Name;
