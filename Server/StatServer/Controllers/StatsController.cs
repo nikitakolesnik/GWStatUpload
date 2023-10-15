@@ -36,6 +36,10 @@ namespace StatServer.Controllers
 		{
 			string content = await new StreamReader(Request.Body).ReadToEndAsync();
 			MatchEntryDTO_Incoming matchEntry = JsonConvert.DeserializeObject<MatchEntryDTO_Incoming>(content);
+
+			if (matchEntry.Players.Count == 0)
+				return BadRequest("No player rows");
+
 			_logger?.LogInformation($"got json body with {matchEntry?.Players.Count ?? -1} players");
 
 			await _repo.AddMatchEntry(matchEntry);
@@ -45,7 +49,7 @@ namespace StatServer.Controllers
 
 		[Route("get_match_page")]
 		[HttpGet]
-		public async Task<IEnumerable<MatchEntryDTO_Incoming>> GetMatchPage(int offset = 0, int pageSize = 10)
+		public async Task<IEnumerable<MatchEntryDTO_Outgoing>> GetMatchPage(int offset = 0, int pageSize = 10)
 		{
 			return await _repo.GetMatchEntriesForMatches(offset, pageSize);
 		}

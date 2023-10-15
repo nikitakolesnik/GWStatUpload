@@ -85,10 +85,12 @@ namespace {
     bool pending_party_members = true;
     bool in_explorable = false;
     bool in_outpost = false;
-    bool in_gvg_match = false;
     PartyMember* player_party_member = nullptr;
-
-    
+    /* Internal data related to sending GvG match skill data */
+    bool in_gvg_match = false;
+    bool pending_match_data = false;
+    bool pending_team_id_change = false;
+    uint8_t last_team_id = 0;
 
     /* Chat messaging */
     clock_t send_timer = 0;
@@ -274,6 +276,16 @@ namespace {
         skill_names.clear();
     }
 
+    void SetTeamId() {
+        const auto* player = GW::Agents::GetPlayer(); // this is null before you load in
+        if (!player) {
+            return;
+        }
+        const auto* agent = player->GetAsAgentLiving(); // idk if this one can be null or not
+        last_team_id = agent->team_id; // unknown=0, blue=1, red=2, yellow=3
+        pending_team_id_change = false;
+    }
+
     bool SetPartyMembers() {
         if (!GW::PartyMgr::GetIsPartyLoaded()) return false;
         if (!GW::Map::GetIsMapLoaded()) return false;
@@ -450,15 +462,18 @@ namespace {
 
     void SendPostReqWithSkillStats()
     {
-        uint32_t instance_id = GW::GetCharContext()->token1;
-        uint8_t team_id = GW::Agents::GetPlayer()->GetAsAgentLiving()->team_id; //blue=1, red=2
+        if (pending_team_id_change) // ok lol haha quirky so ive actually created a nightmare state machine
+            return;
 
-        // build json to export
+        uint32_t instance_id = GW::GetCharContext()->token1;
         
+        //build json to export
         using json = nlohmann::json;
         json jsonObject;
+        jsonObject["instance_id"] = instance_id;
+        jsonObject["team_id"] = last_team_id;
+        
         json playersArray = json::array();
-
         for (PartyMember* pm : party_members) {
             std::string player_name = pm->name.string();
             json playerObject;
@@ -495,6 +510,7 @@ namespace {
         r.IsSuccessful()
             ? Log::InfoW(L"Sent match")
             : Log::InfoW(L"Error sending match");
+        pending_match_data = false;
     }
 
     /********************/
@@ -513,15 +529,15 @@ namespace {
         in_explorable = GW::Map::GetInstanceType() == GW::Constants::InstanceType::Explorable;
         in_outpost = GW::Map::GetInstanceType() == GW::Constants::InstanceType::Outpost;
         
-        // int to wchar_t?
-        auto yy = GW::GetGameContext()->instance();
-        Log::InfoW(L"Sent match");
-
+        // if the player just entered a match
+        if (!was_in_gvg_match && in_gvg_match) {
+            pending_team_id_change = true;
+        }
         // if the player just left a match
-        if (was_in_gvg_match && !in_gvg_match // TODO: check leaving a match before it's over?
-            || GW::Map::GetMapID() == GW::Constants::MapID::Serenity_Temple_outpost // temporarily testing with a specific map
+        else if (was_in_gvg_match  && !in_gvg_match // TODO: check leaving a match before it's over?
+            //|| GW::Map::GetMapID() == GW::Constants::MapID::Serenity_Temple_outpost // temporarily testing with a specific map
             ) { 
-            SendPostReqWithSkillStats();
+            pending_match_data = true;
         }
     }
 
@@ -630,6 +646,13 @@ void PartyStatisticsWindow::Update(float delta) {
 
         GW::Chat::SendChat('#', chat_queue.front().c_str());
         chat_queue.pop();
+    }
+
+    if (pending_team_id_change) {
+        SetTeamId();
+    }
+    if (pending_match_data) {
+        SendPostReqWithSkillStats();
     }
 }
 
