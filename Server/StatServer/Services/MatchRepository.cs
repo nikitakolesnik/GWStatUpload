@@ -19,15 +19,15 @@ namespace StatServer.Services
 
 		public IEnumerable<Match> GetAllMatches()
 		{
-			return _ctx.Matches;
+			return _ctx.Matches.ToList();
 		}
 
 		public IEnumerable<MatchEntry> GetMatchEntriesForMatch(int matchId)
 		{
-			return _ctx.MatchEntries.Where(x => x.MatchId == matchId);
+			return _ctx.MatchEntries.Where(x => x.MatchId == matchId).ToList();
 		}
 
-		public async Task<bool> AddMatchEntry(MatchEntryDTO_Incoming matchEntryDTO)
+		public async Task<bool> AddMatchEntry(MatchEntry_Incoming matchEntryDTO)
 		{
 			// Get the existing match for this instance ID, if it exists
 
@@ -77,7 +77,7 @@ namespace StatServer.Services
 			Team team = ByteToTeam(matchEntryDTO.TeamId);
 			foreach (Player playerEntity in playersInTable)
 			{
-				MatchPlayer playerDTO = matchEntryDTO.Players.Single(x => x.Name == playerEntity.Name);
+				MatchPlayer_Incoming playerDTO = matchEntryDTO.Players.Single(x => x.Name == playerEntity.Name);
 				
 				foreach (MatchPlayerSkill skill in playerDTO.Skills)
 				{
@@ -91,7 +91,7 @@ namespace StatServer.Services
 			return rowsAdded > 0;
 		}
 
-		public async Task<IEnumerable<MatchEntryDTO_Outgoing>> GetMatchEntriesForMatches(int offset, int pageSize)
+		public async Task<IEnumerable<MatchEntry_Outgoing>> GetMatchEntriesForMatches(int offset, int pageSize)
 		{
 			const int PAGE_SIZE_LIMIT = 50;
 			pageSize = Limit(pageSize, 0, PAGE_SIZE_LIMIT);
@@ -110,26 +110,27 @@ namespace StatServer.Services
 				.Where(me => matchIds.Contains(me.MatchId))
 				.ToList();
 
-			List<MatchEntryDTO_Outgoing> result = new();
+			List<MatchEntry_Outgoing> result = new();
 			foreach (Match match in matches)
 			{
 				// subset of all match entries for this match only
 				List<MatchEntry> matchEntriesForMatch = matchEntries.Where(me => me.MatchId == match.Id).ToList();
 
 				// condense the match entry rows into a flat DTO
-				MatchEntryDTO_Outgoing matchExport = new(match.Submitted);
+				MatchEntry_Outgoing matchExport = new(match.Submitted);
 				foreach (MatchEntry matchEntry in matchEntriesForMatch)
 				{
-					string playerName = matchEntry.Player.Name;
+					string name = matchEntry.Player.Name;
 
-					if (!matchExport.Players.Any(x => x.Name == playerName)) // i think it's fine for a prototype, but this is pretty ugly...
+					if (!matchExport.Players.Any(x => x.Name == name)) // i think it's fine for a prototype, but this is pretty ugly...
 					{
+						string team = TeamToString(matchEntry.Team);
 						matchExport.Players
-							.Add(new MatchPlayer(playerName));
+							.Add(new MatchPlayer_Outgoing(name, team));
 					}
 
 					matchExport.Players
-						.Single(x => x.Name == playerName)
+						.Single(x => x.Name == name)
 						.Skills
 						.Add(new MatchPlayerSkill(matchEntry.SkillId, matchEntry.Count));
 				}
@@ -140,16 +141,16 @@ namespace StatServer.Services
 		}
 
 		/// <summary> Keeps an int within a range. Taking 0 to 50: -1 becomes 0, 10 remains unchanged, and 500 becomes 50. </summary>
-		private static int Limit(int num, int min, int max) 
+		private static int Limit(int value, int min, int max) 
 		{
-			num = Math.Min(num, max);
-			num = Math.Max(num, min);
-			return num;
+			value = Math.Min(value, max);
+			value = Math.Max(value, min);
+			return value;
 		}
 
-		private static Team ByteToTeam(byte b)
+		private static Team ByteToTeam(byte @byte)
 		{
-			switch (b)
+			switch (@byte)
 			{
 				case 1:
 					return Team.Blue;
@@ -159,6 +160,21 @@ namespace StatServer.Services
 					return Team.Yellow;
 				default:
 					return Team.Unknown;
+			}
+		}
+
+		private static string TeamToString(Team team)
+		{
+			switch (team)
+			{
+				case Team.Red:
+					return "red";
+				case Team.Yellow:
+					return "yellow";
+				case Team.Blue:
+					return "blue";
+				default:
+					return string.Empty;
 			}
 		}
 	}

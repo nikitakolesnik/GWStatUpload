@@ -2,13 +2,13 @@
 
 namespace StatServer.Models
 {
-	public class MatchEntryDTO_Incoming
+	public class MatchEntry_Incoming
 	{
 		[JsonProperty("instance_id")]
 		public UInt32 InstanceId { get; set; }
 		[JsonProperty("team_id")]
-		public byte TeamId { get; set; } // equivalent of uint8_t?
+		public byte TeamId { get; set; } // byte = uint8_t ?
 
-		public HashSet<MatchPlayer> Players { get; set; } = new();
+		public HashSet<MatchPlayer_Incoming> Players { get; set; } = new();
 	}
 }
