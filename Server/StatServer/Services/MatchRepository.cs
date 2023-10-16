@@ -29,15 +29,21 @@ namespace StatServer.Services
 
 		public async Task<bool> AddMatchEntry(MatchEntryDTO_Incoming matchEntryDTO)
 		{
-			// TODO: reconciling multiple submissions of the same match
-			// ...
+			// Get the existing match for this instance ID, if it exists
 
-			Match match = new();
-			await _ctx.Matches.AddAsync(match);
-			await _ctx.SaveChangesAsync(); // get the generated ID for this match
+			Match match = await _ctx.Matches.SingleOrDefaultAsync(x => x.InstanceId == matchEntryDTO.InstanceId);
+			if (match == default)
+			{
+				match = new();
+				await _ctx.Matches.AddAsync(match);
+				await _ctx.SaveChangesAsync(); // get the generated ID for this match
+				_logger?.LogInformation("created new match with ID " + match.Id);
+			}
+			else
+			{
+				_logger?.LogInformation("associated incoming match entry to existing ID " + match.Id);
+			}
 			
-			_logger?.LogInformation("created new match with ID " + match.Id);
-
 
 			// insert missing players & create a name:id map
 
@@ -67,12 +73,12 @@ namespace StatServer.Services
 
 
 			// add the match entry rows
-			
+
+			Team team = ByteToTeam(matchEntryDTO.TeamId);
 			foreach (Player playerEntity in playersInTable)
 			{
 				MatchPlayer playerDTO = matchEntryDTO.Players.Single(x => x.Name == playerEntity.Name);
-				Team team = Team.Unknown; // figure this out later
-
+				
 				foreach (MatchPlayerSkill skill in playerDTO.Skills)
 				{
 					MatchEntry matchEntry = new(match.Id, team, playerEntity.Id, skill.Id, skill.Count);
@@ -80,6 +86,7 @@ namespace StatServer.Services
 				}
 			}
 			int rowsAdded = _ctx.SaveChanges();
+
 			_logger?.LogInformation($"added {rowsAdded} match entry rows to db");
 			return rowsAdded > 0;
 		}
@@ -138,6 +145,21 @@ namespace StatServer.Services
 			num = Math.Min(num, max);
 			num = Math.Max(num, min);
 			return num;
+		}
+
+		private static Team ByteToTeam(byte b)
+		{
+			switch (b)
+			{
+				case 1:
+					return Team.Blue;
+				case 2:
+					return Team.Red;
+				case 3:
+					return Team.Yellow;
+				default:
+					return Team.Unknown;
+			}
 		}
 	}
 }

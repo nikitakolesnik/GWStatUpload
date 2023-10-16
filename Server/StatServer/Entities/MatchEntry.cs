@@ -11,7 +11,7 @@ namespace StatServer.Entities
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
 		public int MatchId { get; set; }
-		public Team Team { get; set; }
+        public Team Team { get; set; }
 		public int PlayerId { get; set; }
 		public int SkillId { get; set; }
 		public int Count { get; set; }

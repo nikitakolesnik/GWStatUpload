@@ -11,7 +11,8 @@ namespace StatServer.Entities
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
 		public DateTime Submitted { get; set; }
-		public Team Result { get; set; }
+		public int InstanceId { get; set; }
+		public Team WinningTeam { get; set; } = Team.Unknown; //TODO - figure out how to populate this
 
 		// nav
 		public List<MatchEntry>? MatchEntries { get; set; }
@@ -19,12 +20,12 @@ namespace StatServer.Entities
 		public Match()
 		{
 			Submitted = DateTime.UtcNow;
-			Result = Team.Unknown;
+			WinningTeam = Team.Unknown;
 		}
 
 		public Match(Team result) : this()
 		{
-			Result = result;
+			WinningTeam = result;
 		}
 	}
 }
