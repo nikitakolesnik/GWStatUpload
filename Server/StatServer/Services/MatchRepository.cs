@@ -32,7 +32,7 @@ namespace StatServer.Services
 			// Get the existing match for this instance ID, if it exists
 
 			Match match = await _ctx.Matches.SingleOrDefaultAsync(x => x.InstanceId == matchEntryDTO.InstanceId);
-			if (match == default)
+			if (match == null) // default keyword doesn't work?
 			{
 				match = new();
 				await _ctx.Matches.AddAsync(match);

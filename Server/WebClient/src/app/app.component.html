@@ -12,6 +12,7 @@
     <div class="card">
       <div class="card-body">
         <h5 class="card-title">{{ calculate_time_diff_string(match_entry.submitted) }}</h5>
+        <h5 class="card-title">{{ match_entry.submitted }}</h5>
         <!--<h6 class="card-subtitle mb-2 text-body-secondary">Card subtitle</h6>-->
         <!--<p class="card-text">text</p>-->
         <ng-container *ngFor="let player of match_entry.players">
