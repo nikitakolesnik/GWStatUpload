@@ -29,5 +29,11 @@ namespace StatServer.Entities
 			MatchId = matchId;
 			PlayerId = playerId;
 		}
+
+		public MatchEntry(int id, int matchId, Team team, int playerId, int skillId, int count)
+			: this(matchId, team, playerId, skillId, count)
+		{
+			Id = id;
+		}
 	}
 }

@@ -2,6 +2,7 @@
 using StatServer.Data;
 using StatServer.Entities;
 using StatServer.Enums;
+using System.Collections.Generic;
 
 namespace StatServer.Contexts
 {
@@ -23,13 +24,13 @@ namespace StatServer.Contexts
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
 			base.OnConfiguring(optionsBuilder);
-			const string connStr = @"Data Source=(localdb)\MSSQLLocalDB;"+
-				"Initial Catalog=StatServerDB;"+
-				"Integrated Security=True;"+
-				"Connect Timeout=30;"+
-				"Encrypt=False;"+
-				"Trust Server Certificate=False;"+
-				"Application Intent=ReadWrite;"+
+			const string connStr = @"Data Source=(localdb)\MSSQLLocalDB;" +
+				"Initial Catalog=StatServerDB;" +
+				"Integrated Security=True;" +
+				"Connect Timeout=30;" +
+				"Encrypt=False;" +
+				"Trust Server Certificate=False;" +
+				"Application Intent=ReadWrite;" +
 				"Multi Subnet Failover=False";
 			optionsBuilder.UseSqlServer(connStr);
 			_logger?.LogInformation("Made db connection");
@@ -37,6 +38,10 @@ namespace StatServer.Contexts
 
 		protected override async void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			//modelBuilder.Entity<Player>().HasKey(x => x.Id);
+			//modelBuilder.Entity<Match>().HasKey(x => x.Id);
+			//modelBuilder.Entity<MatchEntry>().HasKey(x => x.Id);
+
 			// initialize fake players
 			string[] fakeNames =
 			{
@@ -56,17 +61,23 @@ namespace StatServer.Contexts
 				"Kataleya Blankenship", "Ernesto Dillon", "Laurel Magana", "Rey Nguyen", "Nova Morton", "Roland Fuller",
 				"Oakley Joseph", "Kyle Patterson"
 			};
-			Players.AddRange(fakeNames.Select(name => new Player($"TEST {name}")));
-			await SaveChangesAsync();
+			List<Player> players = new();
+			for (int i = 0; i < fakeNames.Length; i++)
+			{
+				int playerId = (i + 1) * -1;
+				players.Add(new Player(playerId, $"TEST {fakeNames[i]}"));
+			}
+			modelBuilder.Entity<Player>().HasData(players);
 
 			// each match, 8 vs 8 players each cast ? diff unique skills ?? diff times
 			List<int> skillIds = Skills.Map.Keys.Skip(1).ToList(); // skip the "no skill" entry
 			const int numFakeMatchesToCreate = 150;
 			const int maxUsesOfSkill = 50;
-			for (int i = 0; i < numFakeMatchesToCreate; i++)
+			int matchEntryIdCounter = -1;
+			for (int i = 1; i <= numFakeMatchesToCreate; i++)
 			{
 				// randomly pick which team won
-				int randomTeamChoice = _random.Next(3);
+				int randomTeamChoice = _random.Next(0, 3); // high likelyhood just for UI testing
 				Team winningTeam = randomTeamChoice switch
 				{
 					0 => Team.Draw,
@@ -74,44 +85,46 @@ namespace StatServer.Contexts
 					_ => Team.Red
 				};
 
-				// create and save the match, to get a match id
-				Match match = new();
-				await Matches.AddAsync(match);
-				await SaveChangesAsync();
-				
-				// create teams
-				List<int> randomIndices = GetXRandomUniqueIndices(16, Players.Count());
-				List<Player> redTeam  = Players.Where(x => randomIndices.Take(8).Contains(x.Id)).ToList();
-				List<Player> blueTeam = Players.Where(x => randomIndices.Skip(8).Take(8).Contains(x.Id)).ToList();
-				
+				// create match entity
+				int matchId = i * -1;
+				Match match = new(matchId, winningTeam);
+				modelBuilder.Entity<Match>().HasData(match);
+
+				// create teams for match entry calculation
+				List<int> randomIndices = GetXRandomUniqueIndices(16, players.Count);
+				List<Player> redTeam = new();
+				foreach (int index in randomIndices.Take(8)) redTeam.Add(players[index]);
+				List<Player> blueTeam = new();
+				foreach (int index in randomIndices.Skip(8).Take(8)) blueTeam.Add(players[index]);
+
 				// create match entry rows (skill use per player)
-				foreach (Player player in redTeam)
+				void CreateMatchEntryRows(Team team, List<Player> players)
 				{
-					// get 8 random skills for the player to have used (don't care about profession)
-					// skill IDs aren't consecutive; translate random index to the random-ish IDs
-					List<int> skillsUsedIndices = GetXRandomUniqueIndices(8, Skills.Map.Count);
-					List<int> skillsUsedIds = new(8);
-					for (int j = 0; j < skillsUsedIndices.Count(); j++)
+					foreach (Player player in players)
 					{
-						skillsUsedIds[j] = skillIds[skillsUsedIndices[j]];
-					}
-					
-					// create
-					foreach (int skillId in skillsUsedIds)
-					{
-						int skillUsedCount = _random.Next(maxUsesOfSkill);
-						await MatchEntries.AddAsync(new MatchEntry(match.Id, Team.Red, player.Id, skillId, skillUsedCount));
+						// get 8 random skills for the player to have used (don't care about profession)
+						// skill IDs aren't consecutive; translate random index to the random-ish IDs
+
+						List<int> skillsUsedIndices = GetXRandomUniqueIndices(8, skillIds.Count);
+						foreach (int skillIdIndex in skillsUsedIndices)
+						{
+							int skillId = skillIds[skillIdIndex];
+							int skillUsedCount = _random.Next(maxUsesOfSkill);
+							MatchEntry matchEntry = new(matchEntryIdCounter--, match.Id, team, player.Id, skillId, skillUsedCount);
+							modelBuilder.Entity<MatchEntry>().HasData(matchEntry);
+						}
 					}
 				}
+				CreateMatchEntryRows(Team.Red, redTeam);
+				CreateMatchEntryRows(Team.Blue, blueTeam);
 			}
-			await SaveChangesAsync();
 		}
 
-		private List<int> GetXRandomUniqueIndices(int num, int maxValue)
+		private List<int> GetXRandomUniqueIndices(int count, int maxValue)
 		{
 			HashSet<int> randomIndices = new();
 
-			while (randomIndices.Count < num)
+			while (randomIndices.Count < count)
 			{
 				randomIndices.Add(_random.Next(maxValue));
 			}

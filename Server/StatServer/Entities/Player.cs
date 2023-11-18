@@ -15,5 +15,10 @@ namespace StatServer.Entities
 		{
 			Name = name;
 		}
- }
+		public Player(int id, string name)
+		{
+			Id = id;
+			Name = name;
+		}
+	}
 }

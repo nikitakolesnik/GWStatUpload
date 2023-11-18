@@ -27,5 +27,15 @@ namespace StatServer.Entities
 		{
 			WinningTeam = result;
 		}
+
+		public Match(int id) : this()
+		{
+			Id = id;
+		}
+		public Match(int id, Team result)
+		{
+			WinningTeam = result;
+			Id = id;
+		}
 	}
 }
