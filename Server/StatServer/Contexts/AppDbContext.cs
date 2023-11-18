@@ -92,10 +92,8 @@ namespace StatServer.Contexts
 
 				// create teams for match entry calculation
 				List<int> randomIndices = GetXRandomUniqueIndices(16, players.Count);
-				List<Player> redTeam = new();
-				foreach (int index in randomIndices.Take(8)) redTeam.Add(players[index]);
-				List<Player> blueTeam = new();
-				foreach (int index in randomIndices.Skip(8).Take(8)) blueTeam.Add(players[index]);
+				List<Player> redTeam = randomIndices.Take(8).Select(index => players[index]).ToList();
+				List<Player> blueTeam = randomIndices.Skip(8).Take(8).Select(index => players[index]).ToList();
 
 				// create match entry rows (skill use per player)
 				void CreateMatchEntryRows(Team team, List<Player> players)
